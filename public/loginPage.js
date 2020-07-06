@@ -9,8 +9,9 @@ userForm.loginFormCallback = data => {
         console.log(response);
         if (response.success) {
             location.reload();
+        } else {
+            userForm.setLoginErrorMessage(response.data);
         }
-        userForm.setLoginErrorMessage(response.data);
     });
 }
 
@@ -20,8 +21,9 @@ userForm.registerFormCallback = data => {
         console.log(response);
         if (response.success) {
             location.reload();
+        } else {
+            userForm.setRegisterErrorMessage(response.data);
         }
-        userForm.setRegisterErrorMessage(response.data);
     });
 }
 

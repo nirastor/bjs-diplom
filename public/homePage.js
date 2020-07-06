@@ -28,22 +28,34 @@ getStocks();
 const timerForGetStocks = setInterval(getStocks, 60 * 1000);
 
 
+// *** Обновление интерфеса и вызов отображения сообщений ***
+
+const updateFavoritList = (list) => {
+    favoritesWidget.clearTable();
+    favoritesWidget.fillTable(list);
+    moneyManager.updateUsersList(list);
+}
+
+const showChangesAndMessages = (result, successMessage, fn) => {
+    if (result.success) {
+        fn(result.data);
+        moneyManager.setMessage(false, successMessage);
+    } else {
+        moneyManager.setMessage(true, result.data);
+    }
+}
+
+
 // *** Операции с деньгами ***
-// *** ASK *** Во всех операциях с деньгами показывает правильный баланс только после обновления страницы
 const moneyManager = new MoneyManager();
 
 
 // *** Пополнение баланса -- Операции с деньгами ***
 moneyManager.addMoneyCallback = addMoneyData => {
     ApiConnector.addMoney(addMoneyData, r => {
-        if (r.success) {
-            ApiConnector.current(user => ProfileWidget.showProfile(user.data));
-            moneyManager.setMessage(
-                false,
-                `Пополнили на ${addMoneyData.amount}${addMoneyData.currency}`);
-        } else {
-            moneyManager.setMessage(true, r.data);
-        }
+        const successMessage = `Пополнили на ${addMoneyData.amount} ${addMoneyData.currency}`;
+        //showMoneyManagerResult(r, successMessage);
+        showChangesAndMessages(r, successMessage, ProfileWidget.showProfile);
     });
 }
 
@@ -51,29 +63,16 @@ moneyManager.addMoneyCallback = addMoneyData => {
 // *** Конвертирование валюты -- Операции с деньгами ***
 moneyManager.conversionMoneyCallback = convertMoneyData => {
     ApiConnector.convertMoney(convertMoneyData, r => {
-        if (r.success) {
-            ApiConnector.current(user => ProfileWidget.showProfile(user.data));
-            moneyManager.setMessage(
-                false,
-                `Перевели ${convertMoneyData.fromAmount}${convertMoneyData.fromCurrency} в ${convertMoneyData.targetCurrency}`);
-        } else {
-            moneyManager.setMessage(true, r.data);
-        }
+        const successMessage = `Перевели ${convertMoneyData.fromAmount} ${convertMoneyData.fromCurrency} в ${convertMoneyData.targetCurrency}`;
+        showChangesAndMessages(r, successMessage, ProfileWidget.showProfile);
     });
 }
 
 // *** Перевод валюты -- Операции с деньгами ***
 moneyManager.sendMoneyCallback = sendMoneyData => {
-    console.log(sendMoneyData);
     ApiConnector.transferMoney(sendMoneyData, r => {
-        if (r.success) {
-            ApiConnector.current(user => ProfileWidget.showProfile(user.data));
-            moneyManager.setMessage(
-                false,
-                `Перевели ${sendMoneyData.amount}${sendMoneyData.currency}`);
-        } else {
-            moneyManager.setMessage(true, r.data);
-        }
+        const successMessage = `Перевели ${sendMoneyData.amount} ${sendMoneyData.currency}`;
+        showChangesAndMessages(r, successMessage, ProfileWidget.showProfile);
     });
 }
 
@@ -81,11 +80,6 @@ moneyManager.sendMoneyCallback = sendMoneyData => {
 // *** Работа с избранным ***
 const favoritesWidget = new FavoritesWidget();
 
-const updateFavoritList = (list) => {
-    favoritesWidget.clearTable();
-    favoritesWidget.fillTable(list);
-    moneyManager.updateUsersList(list);
-}
 
 // *** начальный список избранного -- Работа с избранным ***
 ApiConnector.getFavorites((r) => {
@@ -99,15 +93,8 @@ ApiConnector.getFavorites((r) => {
 favoritesWidget.addUserCallback = () => {
     const userForAdd = favoritesWidget.getData();
     ApiConnector.addUserToFavorites(userForAdd, r => {
-        
-        const userNameForMessage = `${userForAdd.name} (id=${userForAdd.id})`
-        
-        if (r.success) {
-            updateFavoritList(r.data);
-            favoritesWidget.setMessage(false, `${userNameForMessage} добавлен в избранное`);
-        } else {
-            favoritesWidget.setMessage(true, `Не удалось добавить ${userNameForMessage} в избранное`);
-        }
+        const successMessage = `${userForAdd.name} (id=${userForAdd.id}) добавлен в избранное`;
+        showChangesAndMessages(r, successMessage, updateFavoritList);
     });
 };
 
@@ -115,11 +102,7 @@ favoritesWidget.addUserCallback = () => {
 // *** удаление пользователя из избранного -- Работа с избранным ***
 favoritesWidget.removeUserCallback = (id) => {
     ApiConnector.removeUserFromFavorites(id, r => {
-        if (r.success) {
-            updateFavoritList(r.data);
-            favoritesWidget.setMessage(false, 'Уделен из избранного');
-        } else {
-            favoritesWidget.setMessage(true, 'Не удалось удалить из избранного');
-        }
+        const successMessage = `Удален из избранного`;
+        showChangesAndMessages(r, successMessage, updateFavoritList);
     });
 };
