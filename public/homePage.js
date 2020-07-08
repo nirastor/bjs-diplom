@@ -36,12 +36,14 @@ const updateFavoritList = (list) => {
     moneyManager.updateUsersList(list);
 }
 
-const showChangesAndMessages = (result, successMessage, fn) => {
+const showChangesAndMessages = (result, successMessage, fn, operationClass) => {
     if (result.success) {
         fn(result.data);
-        moneyManager.setMessage(false, successMessage);
+        operationClass.setMessage(false, successMessage);
+        // тут ошибка, для операций с избранным нужно вызывать favoritesWidget.setMessage
+        // но визуально все работает
     } else {
-        moneyManager.setMessage(true, result.data);
+        operationClass.setMessage(true, result.data);
     }
 }
 
@@ -55,7 +57,7 @@ moneyManager.addMoneyCallback = addMoneyData => {
     ApiConnector.addMoney(addMoneyData, r => {
         const successMessage = `Пополнили на ${addMoneyData.amount} ${addMoneyData.currency}`;
         //showMoneyManagerResult(r, successMessage);
-        showChangesAndMessages(r, successMessage, ProfileWidget.showProfile);
+        showChangesAndMessages(r, successMessage, ProfileWidget.showProfile, moneyManager);
     });
 }
 
@@ -64,7 +66,7 @@ moneyManager.addMoneyCallback = addMoneyData => {
 moneyManager.conversionMoneyCallback = convertMoneyData => {
     ApiConnector.convertMoney(convertMoneyData, r => {
         const successMessage = `Перевели ${convertMoneyData.fromAmount} ${convertMoneyData.fromCurrency} в ${convertMoneyData.targetCurrency}`;
-        showChangesAndMessages(r, successMessage, ProfileWidget.showProfile);
+        showChangesAndMessages(r, successMessage, ProfileWidget.showProfile, moneyManager);
     });
 }
 
@@ -72,7 +74,7 @@ moneyManager.conversionMoneyCallback = convertMoneyData => {
 moneyManager.sendMoneyCallback = sendMoneyData => {
     ApiConnector.transferMoney(sendMoneyData, r => {
         const successMessage = `Перевели ${sendMoneyData.amount} ${sendMoneyData.currency}`;
-        showChangesAndMessages(r, successMessage, ProfileWidget.showProfile);
+        showChangesAndMessages(r, successMessage, ProfileWidget.showProfile, moneyManager);
     });
 }
 
@@ -94,7 +96,7 @@ favoritesWidget.addUserCallback = () => {
     const userForAdd = favoritesWidget.getData();
     ApiConnector.addUserToFavorites(userForAdd, r => {
         const successMessage = `${userForAdd.name} (id=${userForAdd.id}) добавлен в избранное`;
-        showChangesAndMessages(r, successMessage, updateFavoritList);
+        showChangesAndMessages(r, successMessage, updateFavoritList, favoritesWidget);
     });
 };
 
@@ -103,6 +105,6 @@ favoritesWidget.addUserCallback = () => {
 favoritesWidget.removeUserCallback = (id) => {
     ApiConnector.removeUserFromFavorites(id, r => {
         const successMessage = `Удален из избранного`;
-        showChangesAndMessages(r, successMessage, updateFavoritList);
+        showChangesAndMessages(r, successMessage, updateFavoritList, favoritesWidget);
     });
 };
