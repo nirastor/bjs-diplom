@@ -40,8 +40,6 @@ const showChangesAndMessages = (result, successMessage, fn, operationClass) => {
     if (result.success) {
         fn(result.data);
         operationClass.setMessage(false, successMessage);
-        // тут ошибка, для операций с избранным нужно вызывать favoritesWidget.setMessage
-        // но визуально все работает
     } else {
         operationClass.setMessage(true, result.data);
     }
